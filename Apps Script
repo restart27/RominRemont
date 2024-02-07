@@ -1,0 +1,339 @@
+//Меню
+function onOpen() {
+  var ui = DocumentApp.getUi();
+  ui.createMenu('MNG_menu')
+      .addItem('Удалить код',         'menuItem1_')
+      .addItem('Отправить 2 письма',  'menuItem5_')
+      .addItem('Покрасить код',       'menuItem2_')
+      .addItem('Обесцветить код',     'menuItem3_')
+      .addItem('Поставить дату',      'menuItem4_')
+      .addItem('Отправить в Рестарт', 'menuItem6_')
+      .addItem('Проверить квоту',     'menuItem7_')
+      .addToUi();
+
+        highlightEmailsOnOpen();                        // Вызываем функцию для выделения email красным цветом при открытии документа
+}
+
+
+function highlightEmailsOnOpen() {
+  var doc = DocumentApp.getActiveDocument();
+  var body = doc.getBody();
+  var emailRegex = /\S+@\S+\.\S+/g; // Используем глобальный флаг 'g' для поиска всех совпадений
+  var text = body.getText();
+  var emails = text.match(emailRegex);
+
+  if (emails) {
+    emails.forEach(function(email) {
+      highlightText(email, "#0000FF"); // Вызываем функцию для выделения каждого найденного email
+    });
+  }
+}
+
+function highlightText(searchText, color) {
+  var doc = DocumentApp.getActiveDocument();
+  var body = doc.getBody();
+  var text = body.findText(searchText);
+  while (text != null) {
+    var startOffset = text.getStartOffset();
+    var endOffset = text.getEndOffsetInclusive();
+    text.getElement().asText().setForegroundColor(startOffset, endOffset, color);
+    text = body.findText(searchText, text);
+  }
+}
+
+
+
+function menuItem1_() {
+  changetext();
+  seid1_();
+}
+function menuItem2_() {
+  on_lightText();
+  seid2_();
+}
+function menuItem3_() {
+  off_lightText();
+  seid2_();
+}
+function menuItem4_() {
+  updateDate();
+}
+function menuItem5_() {
+  var foundEmail = sendDocEmail1();                       // объявляем первое письмо и получаем найденный адрес
+  var messageSent = seid3_();                             // Получаем сообщения от обеих функций
+    if (foundEmail) {
+    messageSent += "\nНа почту клиента: " + foundEmail;
+  }
+  var quotaMessage = reportQuota_();
+  var finalMessage = messageSent + "\n" + quotaMessage;   // Объединяем сообщения
+  var ui = DocumentApp.getUi();                           // Отображаем объединенное сообщение
+  ui.alert(finalMessage);
+}
+function menuItem6_() {
+  sendDocEmail2();
+  // Получаем сообщения от обеих функций
+  var messageSent = seid4_();
+  var quotaMessage = reportQuota_();
+  var finalMessage = messageSent + "\n" + quotaMessage;   // Объединяем сообщения
+  var ui = DocumentApp.getUi();                           // Отображаем объединенное сообщение
+  ui.alert(finalMessage);
+}
+function menuItem7_() {
+  reportQuota_();   // если в функцию добавить нижний слеш _ то она проподает из списка исполнения
+}
+//Меню.
+//Сообщение "Код удален"
+function seid1_() {
+  var ui = DocumentApp.getUi();
+  ui.alert('Код удалён');
+}
+//Сообщение "Команда выполнена"
+function seid2_() {
+  var ui = DocumentApp.getUi();
+  ui.alert('Команда выполнена');
+}
+function seid3_() {
+  return'Документ отправлен клиенту и в Юр.Хранилище';
+}
+function seid4_() {
+  return'Документ отправлен в Юр.Хранилище';
+}
+//Заменяем текст , удаляем
+function changetext() {
+  var TexDok = DocumentApp.getActiveDocument();
+  var text = TexDok.getBody();
+  text.replaceText("{{lead.id}}", ""); //Заменяем текст
+  text.replaceText("{{contact.name}}", ""); 
+  text.replaceText("{{contact.cf.1723193}}", ""); 
+  text.replaceText("{{contact.cf.959210}}", "");
+  text.replaceText("{{lead.cf.1724105}}", ""); 
+  text.replaceText("{{lead.cf.1724117}}", ""); 
+  text.replaceText("{{lead.cf.1724119}}", ""); 
+  text.replaceText("{{lead.cf.1724111}}", "");
+  text.replaceText("{{lead.cf.1724127}}", ""); 
+  text.replaceText("{{lead.cf.1729373}}", ""); 
+  text.replaceText("{{lead.cf.1302027}}", ""); 
+  text.replaceText("{{lead.cf.1729421}}", ""); 
+  text.replaceText("{{lead.cf.1722193}}", ""); 
+  text.replaceText("{{lead.cf.1729381}}", ""); 
+  text.replaceText("{{lead.cf.1724101}}", ""); //Заменяем текст
+  text.setBackgroundColor("#ffffff"); //Устанавливаем белый цвет фона
+}
+
+//Меняем цвет букв
+function on_lightText() {
+  var doc = DocumentApp.getActiveDocument();
+  var body = doc.getBody();
+  // Функция для изменения цвета текста
+  function highlightText(searchText, color) {
+    var text = body.findText(searchText);
+    while (text != null) {
+      var startOffset = text.getStartOffset();
+      var endOffset = text.getEndOffsetInclusive();
+      text.getElement().asText().setForegroundColor(startOffset, endOffset, color);
+      text = body.findText(searchText, text);
+    }
+  }
+  // Вызываем функцию для {{lead.cf.1724117}} с одинаковым или разным цветом
+  highlightText("{{lead.id}}", "#FF0000");  // Изменяем цвет на красный
+  highlightText("{{contact.name}}", "#FF0000");  
+  highlightText("{{contact.cf.1723193}}", "#FF0000");
+  highlightText("{{contact.cf.959210}}", "#FF0000");
+  highlightText("{{lead.cf.1724105}}", "#FF0000");
+  highlightText("{{lead.cf.1724117}}", "#FF0000");
+  highlightText("{{lead.cf.1724119}}", "#FF0000");
+  highlightText("{{lead.cf.1724111}}", "#FF0000");
+  highlightText("{{lead.cf.1724127}}", "#FF0000");
+  highlightText("{{lead.cf.1729373}}", "#FF0000");
+  highlightText("{{lead.cf.1302027}}", "#FF0000"); 
+  highlightText("{{lead.cf.1729421}}", "#FF0000");
+  highlightText("{{lead.cf.1722193}}", "#FF0000");
+  highlightText("{{lead.cf.1729381}}", "#FF0000");
+  highlightText("{{lead.cf.1724101}}", "#FF0000");  // Изменяем цвет на красный 
+}
+//Меняем цвет Назад
+function off_lightText() {
+  var doc = DocumentApp.getActiveDocument();
+  var body = doc.getBody();
+  // Функция для изменения цвета текста
+  function highlightText(searchText, color) {
+    var text = body.findText(searchText);
+    while (text != null) {
+      var startOffset = text.getStartOffset();
+      var endOffset = text.getEndOffsetInclusive();
+      text.getElement().asText().setForegroundColor(startOffset, endOffset, color);
+      text = body.findText(searchText, text);
+    }
+  }
+  // Вызываем функцию для {{lead.cf.1724117}} с одинаковым или разным цветом
+  highlightText("{{lead.id}}", "#FFFFFF");  // Изменяем цвет на белый
+  highlightText("{{contact.name}}", "#FFFFFF");  
+  highlightText("{{contact.cf.1723193}}", "#FFFFFF");
+  highlightText("{{contact.cf.959210}}", "#FFFFFF");
+  highlightText("{{lead.cf.1724105}}", "#FFFFFF");
+  highlightText("{{lead.cf.1724117}}", "#FFFFFF");
+  highlightText("{{lead.cf.1724119}}", "#FFFFFF");
+  highlightText("{{lead.cf.1724111}}", "#FFFFFF");
+  highlightText("{{lead.cf.1724127}}", "#FFFFFF");
+  highlightText("{{lead.cf.1729373}}", "#FFFFFF");
+  highlightText("{{lead.cf.1302027}}", "#FFFFFF"); 
+  highlightText("{{lead.cf.1729421}}", "#FFFFFF");
+  highlightText("{{lead.cf.1722193}}", "#FFFFFF");
+  highlightText("{{lead.cf.1729381}}", "#FFFFFF");
+  highlightText("{{lead.cf.1724101}}", "#FFFFFF");  // Изменяем цвет на белый 
+}
+//Цвет букв закончили
+
+//Вставляем текущую дату//
+//Задаем формат даты
+function formatDate(date) {
+ var day = date.getDate();
+ var month = date.getMonth() + 1;
+ var year = date.getFullYear();
+ return day + '.' + month + '.' + year;
+}
+//Задаем формат даты
+function updateDate() {
+  var date = new Date();
+  var formattedDate = formatDate(date);
+  var body = DocumentApp.getActiveDocument().getBody();
+
+  // Создаем абзац с текущей датой и сохраняем ссылку на этот абзац
+  var paragraph = body.appendParagraph('Текущая дата: ' + formattedDate);
+  
+  // Устанавливаем выравнивание текста в абзаце по правому краю
+  paragraph.setAlignment(DocumentApp.HorizontalAlignment.RIGHT);
+  var ui = DocumentApp.getUi();
+  ui.alert('Дата добавлена');
+}
+//Вставляем текущую дату.
+
+// отправка документа в котором работает скрипт на найденную почту и постоянный адрес
+function sendDocEmail1() {
+  // Получаем текущий активный документ Google Docs
+  var doc = DocumentApp.getActiveDocument();
+  var documentId = doc.getId();
+  
+  // Получаем текст документа
+  var bodyText = doc.getBody().getText();
+  
+  // Ищем адрес электронной почты в тексте документа
+  var emailRegex = /\S+@\S+\.\S+/;
+  var foundEmails = bodyText.match(emailRegex);
+  
+  if (!foundEmails || foundEmails.length == 0) {
+    Logger.log("Адрес электронной почты не найден.");
+    return "ОШИБКА!!! Адрес Клиента отсутсвует в документе"; // Возвращаем пустую строку, если адрес не найден
+  }
+  
+  // Используем первый найденный адрес электронной почты для отправки
+  var recipientEmail = foundEmails[0];
+  
+  // URL для экспорта документа в формате PDF
+  var url = 'https://docs.google.com/document/d/' + documentId + '/export?format=pdf';
+  
+  var options = {
+    headers: {
+      'Authorization': 'Bearer ' + ScriptApp.getOAuthToken()
+    },
+    muteHttpExceptions: true
+  };
+  
+  // Получаем PDF документа
+  var response = UrlFetchApp.fetch(url, options);
+  var pdfBlob = response.getBlob();
+  
+  // Название вложения
+  pdfBlob.setName(doc.getName() + '.pdf');
+  
+  // Тема письма
+  var subject = 'Ваш Наряд-заказ Документ';
+  
+  // Сообщение письма
+  var body = 'Здравствуйте! Во вложении находится ваш Наряд-заказ оформленный в компании ООО «Рестарт».';
+  
+  // Отправляем письмо с PDF вложением на найденный адрес и постоянный адрес
+  MailApp.sendEmail({
+    to: recipientEmail + ",restart27.27@gmail.com", // Добавляем постоянный адрес через запятую
+  subject: subject,
+    subject: subject,
+    body: body,
+    attachments: [pdfBlob],
+  });
+  
+  Logger.log("Документ отправлен на адрес: " + recipientEmail);
+  return recipientEmail; // Возвращаем найденный адрес
+}
+// отправка документа в котором работает скрипт на найденную почту и постоянный адрес.
+
+
+// отправка документа в котором запущен скрипт на один адрес
+function sendDocEmail2() {
+ // Получаем текущий активный документ Google Docs
+ var doc = DocumentApp.getActiveDocument();
+ var documentId = doc.getId();
+ // Получаем URL для экспорта документа в формате PDF
+ var url = 'https://docs.google.com/document/d/' + documentId + '/export?format=pdf';
+ var options = {
+ headers: {
+ 'Authorization': 'Bearer ' + ScriptApp.getOAuthToken()
+ },
+ muteHttpExceptions: true
+ };
+ // Получаем PDF документа
+ var response = UrlFetchApp.fetch(url, options);
+ var pdfBlob = response.getBlob();
+ // Название вложения
+ pdfBlob.setName(doc.getName() + '.pdf');
+ // Адрес электронной почты получателя
+ var recipientEmail = 'restart27.27@gmail.com';
+ // Тема письма
+ var subject = 'Ваш Наряд-заказ Документ';
+ // Сообщение письма
+ var body = 'Здравствуйте! Во вложении находится ваш Наряд-заказ оформленный в компании ООО «Рестарт».';
+ // Отправляем письмо с PDF вложением
+ MailApp.sendEmail({
+ to: recipientEmail,
+ subject: subject,
+ body: body,
+ attachments: [pdfBlob]
+ });
+}
+// отправка документа в котором запущен скрипт на один адрес.
+
+
+
+
+
+//отправка тестового письма
+function test( ) {
+  MailApp.sendEmail("restart27.27@gmail.com","со скрипта","Тест скрипта" )
+}
+
+// Проверка сколько квоты для писем осталось  https://github.com/Max-Makhrov/GoogleSheets/blob/master/sendMail.gs
+function getRemainingDailyMailQuota() {
+  var quota = MailApp.getRemainingDailyQuota();
+  console.log(quota);
+  return quota;
+}
+
+
+
+function seidQuota_(message) {
+  var ui = DocumentApp.getUi();
+  ui.alert(message);
+}
+
+function reportQuota_() {
+  var quota = MailApp.getRemainingDailyQuota();
+  console.log(quota);
+  return 'Оставшееся количество писем для отправки сегодня: ' + quota;
+}
+
+
+
+
+
+
+
+
