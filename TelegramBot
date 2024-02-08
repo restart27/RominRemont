@@ -1,0 +1,72 @@
+
+var token = "884857104:AAFT3wSJWRq4uiXu9LYTaSJM8B5JRGsX5hc";
+var webAppUrl = "https://script.google.com/macros/s/AKfycbw5JkE88vrSK6PubnhonOIAMMsRsyYhtSYWZhkxksKR77TAW7taeFGps856JD8DVyiM/exec";
+var telegramUrl = "https://api.telegram.org/bot" + token; 
+function setBotHook() {
+  
+  var url = telegramUrl + "/setWebhook?url=" + webAppUrl;
+  var response = UrlFetchApp.fetch(url);
+  if (response.getResponseCode() === 200) {
+    console.log("Отлично все работает! делается один раз");
+  } else {
+    console.log("Что то пошло не так...");
+  }
+}
+
+function doPost(e) {
+  runBot_(e);
+}
+function doGet(e) {
+  runBot_(e);
+}
+// function to react when peaple write to Bot
+function runBot_(e) {
+  try {
+    executeBot_(e);
+  } catch(err) {
+    save2mem_(err.stack);
+    throw err;
+  }
+}
+function executeBot_(e) {
+  var contents = JSON.parse(e.postData.contents);
+  // run logMemory after exexution
+  save2mem_(JSON.stringify(contents, null, 4));
+}
+    
+var bot_key = 'telegrambot_info';
+function save2mem_(msg) {
+  var m = get_mem_();
+  m.put(bot_key, msg);
+}
+function get_mem_() {
+  return CacheService.getScriptCache();
+}
+function logMemory() {
+  var m = get_mem_();
+  var res = m.get(bot_key);
+  console.log(res);
+}
+
+
+function testSend() {
+  sendMessage2Bot_( 'Hello, Annual <i>Inspection</i> is soon:\n<b>Unit:</b> <code>{шрифт кода}</code>\n<b>Date:</b> <code>{DATE}</code>',
+  
+    -1002038450437);                                          // Тут айди чата его узнать можно приняв сообщение
+}
+function sendMessage2Bot_(msg, chat_id) {
+ var data = {
+    "text" : msg,
+    "parse_mode": 'html'
+  };
+  var payload = JSON.stringify(data);
+  var options = {
+    "method" : "POST",
+    "contentType" : "application/json",
+    "payload" : payload,
+    "muteHttpExceptions": true
+  };
+  var url = telegramUrl + "/sendMessage?chat_id=" + chat_id;
+  var response = UrlFetchApp.fetch(url, options);
+  console.log(response.getContentText()); 
+}
