@@ -1,9 +1,8 @@
 
-var token = "884857104:AAFT3wSJWRq4uiXu9LYTaSJM8B5JRGsX5hc";
-var webAppUrl = "https://script.google.com/macros/s/AKfycbw5JkE88vrSK6PubnhonOIAMMsRsyYhtSYWZhkxksKR77TAW7taeFGps856JD8DVyiM/exec";
-var telegramUrl = "https://api.telegram.org/bot" + token; 
-function setBotHook() {
-  
+var token = "884857104:AAFT3wSJWRq4uiXu9LYTaSJM8B5JRGsX5hc";                    // токен Telegram бота
+var webAppUrl = "https://script.google.com/macros/s/AKfycbw5JkE88vrSK6PubnhonOIAMMsRsyYhtSYWZhkxksKR77TAW7taeFGps856JD8DVyiM/exec"; //URL скрипта-приложения
+var telegramUrl = "https://api.telegram.org/bot" + token;                       // URL запросов к API Telegram
+function setBotHook() {                                                         //Устанавливает webhook
   var url = telegramUrl + "/setWebhook?url=" + webAppUrl;
   var response = UrlFetchApp.fetch(url);
   if (response.getResponseCode() === 200) {
@@ -12,15 +11,13 @@ function setBotHook() {
     console.log("Что то пошло не так...");
   }
 }
-
 function doPost(e) {
   runBot_(e);
-}
+}                                                                              //Эти функции являются точками входа для веб-приложения Google Apps Script. Они вызывают функцию runBot_, когда Telegram отправляет обновления через webhook.
 function doGet(e) {
   runBot_(e);
 }
-// function to react when peaple write to Bot
-function runBot_(e) {
+function runBot_(e) {                                                          //Обрабатывает входящие запросы от Telegram. В случае ошибки при выполнении, информация об ошибке сохраняется при помощи функции save2mem_, и ошибка перебрасывается дальше.
   try {
     executeBot_(e);
   } catch(err) {
@@ -28,33 +25,32 @@ function runBot_(e) {
     throw err;
   }
 }
-function executeBot_(e) {
+function executeBot_(e) {                                                       //Обрабатывает данные, полученные от Telegram, преобразуя их из формата JSON. 
   var contents = JSON.parse(e.postData.contents);
   // run logMemory after exexution
   save2mem_(JSON.stringify(contents, null, 4));
 }
-    
 var bot_key = 'telegrambot_info';
-function save2mem_(msg) {
+function save2mem_(msg) {                                                       //сохраняет сообщения или данные в кэш скрипта
   var m = get_mem_();
   m.put(bot_key, msg);
 }
-function get_mem_() {
+function get_mem_() {                                                           //возвращает экземпляр сервиса кэша, который используется для чтения и записи данных
   return CacheService.getScriptCache();
 }
-function logMemory() {
+function logMemory() {                                                          //выводит в консоль данные, сохранённые в кэше скрипта
   var m = get_mem_();
   var res = m.get(bot_key);
   console.log(res);
 }
 
 
-function testSend() {
-  sendMessage2Bot_( 'Hello, Annual <i>Inspection</i> is soon:\n<b>Unit:</b> <code>{шрифт кода}</code>\n<b>Date:</b> <code>{DATE}</code>',
+function testSend() {                                                            //тестовое сообщение в Telegram Использует HTML-форматирование 
+  sendMessage2Bot_( 'Сообщение для теста отправлено с второго скрипта',
   
-    -1002038450437);                                          // Тут айди чата его узнать можно приняв сообщение
+    -1002038450437);                                                             // Тут айди чата его узнать можно приняв сообщение
 }
-function sendMessage2Bot_(msg, chat_id) {
+function sendMessage2Bot_(msg, chat_id) {                                        //Создаёт и отправляет HTTP POST-запрос к API Telegram для отправки сообщения от имени бота. Данные сообщения форматируются в JSON и включают текст сообщения и указание на HTML как формат разметки. В случае успеха, ответ от Telegram выводится в консоль.
  var data = {
     "text" : msg,
     "parse_mode": 'html'
