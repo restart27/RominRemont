@@ -1,3 +1,21 @@
+function getFirstLineText() {                            //Извлечение текста из первой строки документа
+  var doc = DocumentApp.getActiveDocument();
+  var body = doc.getBody();
+  var firstParagraph = body.getParagraphs()[0];
+  return firstParagraph ? firstParagraph.getText() : "";
+}                                                        //Эта функция возвращает текст первой строки документа или пустую строку, если первая строка отсутствует.
+
+function getSecondLineText() {                           //Извлекать текст из второй строки документа
+  var doc = DocumentApp.getActiveDocument();
+  var body = doc.getBody();
+  var paragraphs = body.getParagraphs();
+  var secondParagraph = paragraphs.length > 1 ? paragraphs[1] : null;
+  var secondLineText = secondParagraph ? secondParagraph.getText() : "";
+  // Удаляем "Ф.И.О." из строки, если оно присутствует
+  return secondLineText.replace("Ф.И.О. ", "");
+}
+
+
 //Меню
 function onOpen() {
   var ui = DocumentApp.getUi();
@@ -78,8 +96,11 @@ function menuItem6_() {
   var ui = DocumentApp.getUi();                           // Отображаем объединенное сообщение
   ui.alert(finalMessage);
 }
+
 function menuItem7_() {
-  reportQuota_();   // если в функцию добавить нижний слеш _ то она проподает из списка исполнения
+  var message = reportQuota_(); // Получаем сообщение о квоте
+  var ui = DocumentApp.getUi(); // Получаем UI текущего документа
+  ui.alert(message); // Показываем сообщение пользователю
 }
 //Меню.
 //Сообщение "Код удален"
@@ -93,7 +114,7 @@ function seid2_() {
   ui.alert('Команда выполнена');
 }
 function seid3_() {
-  return'Документ отправлен клиенту и в Юр.Хранилище';
+  return'Документ отправлен клиенту и в Юр.Хранилище ООО «Рестарт»';
 }
 function seid4_() {
   return'Документ отправлен в Юр.Хранилище';
@@ -208,27 +229,22 @@ function updateDate() {
 }
 //Вставляем текущую дату.
 
-// отправка документа в котором работает скрипт на найденную почту и постоянный адрес
-function sendDocEmail1() {
-  // Получаем текущий активный документ Google Docs
-  var doc = DocumentApp.getActiveDocument();
+
+function sendDocEmail1() {                                          // отправка документа в котором работает скрипт на найденную почту и постоянный адрес
+  var doc = DocumentApp.getActiveDocument();                        // Получаем текущий активный документ Google Docs
   var documentId = doc.getId();
-  
-  // Получаем текст документа
-  var bodyText = doc.getBody().getText();
-  
+  var firstLineText = getFirstLineText();                                      // Получаем текст первой строки для добавления в тему письма
+  var secondLineText = getSecondLineText();                                    // Получаем текст второй строки для добавления в тему письма
+  var bodyText = doc.getBody().getText();                           // Получаем текст документа
   // Ищем адрес электронной почты в тексте документа
   var emailRegex = /\S+@\S+\.\S+/;
   var foundEmails = bodyText.match(emailRegex);
   
   if (!foundEmails || foundEmails.length == 0) {
     Logger.log("Адрес электронной почты не найден.");
-    return "ОШИБКА!!! Адрес Клиента отсутсвует в документе"; // Возвращаем пустую строку, если адрес не найден
+    return "ОШИБКА!!! Адрес Клиента отсутсвует в документе";        // Возвращаем пустую строку, если адрес не найден
   }
-  
-  // Используем первый найденный адрес электронной почты для отправки
-  var recipientEmail = foundEmails[0];
-  
+  var recipientEmail = foundEmails[0];                              // Используем первый найденный адрес электронной почты для отправки
   // URL для экспорта документа в формате PDF
   var url = 'https://docs.google.com/document/d/' + documentId + '/export?format=pdf';
   
@@ -247,15 +263,11 @@ function sendDocEmail1() {
   pdfBlob.setName(doc.getName() + '.pdf');
   
   // Тема письма
-  var subject = 'Ваш Наряд-заказ Документ';
-  
+  var subject = 'Ваш документ: '+ firstLineText;                       // Добавляем текст первой строки документа в тему письма
   // Сообщение письма
-  var body = 'Здравствуйте! Во вложении находится ваш Наряд-заказ оформленный в компании ООО «Рестарт».';
-  
-  // Отправляем письмо с PDF вложением на найденный адрес и постоянный адрес
-  MailApp.sendEmail({
-    to: recipientEmail + ",restart27.27@gmail.com", // Добавляем постоянный адрес через запятую
-  subject: subject,
+  var body = 'Здравствуйте! ' + secondLineText + '. Во вложении находится Ваш ' + firstLineText + ' на ремонт техники. Оформленный в компании ООО «Рестарт».\n\n\n WhatsApp: 8-909-802-02-28 тел.8 (4212) 68-02-28'
+  MailApp.sendEmail({                                                   // Отправляем письмо с PDF вложением на найденный адрес и постоянный адрес
+    to: recipientEmail + ",restart27.27@gmail.com",                     // Добавляем постоянный адрес через запятую
     subject: subject,
     body: body,
     attachments: [pdfBlob],
@@ -263,17 +275,15 @@ function sendDocEmail1() {
   
   Logger.log("Документ отправлен на адрес: " + recipientEmail);
   return recipientEmail; // Возвращаем найденный адрес
-}
-// отправка документа в котором работает скрипт на найденную почту и постоянный адрес.
+}                                                                             // отправка документа в котором работает скрипт на найденную почту и постоянный адрес.
 
 
-// отправка документа в котором запущен скрипт на один адрес
-function sendDocEmail2() {
- // Получаем текущий активный документ Google Docs
- var doc = DocumentApp.getActiveDocument();
+function sendDocEmail2() {                                                    // отправка документа в котором запущен скрипт на один прописанный адрес
+ var doc = DocumentApp.getActiveDocument();                                   // Получаем текущий активный документ Google Docs
  var documentId = doc.getId();
- // Получаем URL для экспорта документа в формате PDF
- var url = 'https://docs.google.com/document/d/' + documentId + '/export?format=pdf';
+ var firstLineText = getFirstLineText();                                      // Получаем текст первой строки для добавления в тему письма
+ var secondLineText = getSecondLineText();                                    // Получаем текст второй строки для добавления в тему письма
+ var url = 'https://docs.google.com/document/d/' + documentId + '/export?format=pdf';  // Получаем URL для экспорта документа в формате PDF
  var options = {
  headers: {
  'Authorization': 'Bearer ' + ScriptApp.getOAuthToken()
@@ -288,27 +298,24 @@ function sendDocEmail2() {
  // Адрес электронной почты получателя
  var recipientEmail = 'restart27.27@gmail.com';
  // Тема письма
- var subject = 'Ваш Наряд-заказ Документ';
+ var subject = 'Ваш Документ: '+ firstLineText;                       // Добавляем текст первой строки документа в тему письма
  // Сообщение письма
- var body = 'Здравствуйте! Во вложении находится ваш Наряд-заказ оформленный в компании ООО «Рестарт».';
- // Отправляем письмо с PDF вложением
- MailApp.sendEmail({
+ var body = 'Здравствуйте! ' + secondLineText + '. Во вложении находится Ваш ' + firstLineText + ' на ремонт техники. Оформленный в компании ООО «Рестарт».\n\n\n WhatsApp: 8-909-802-02-28 тел.8 (4212) 68-02-28';
+ MailApp.sendEmail({                                                              // Отправляем письмо с PDF вложением
  to: recipientEmail,
  subject: subject,
  body: body,
  attachments: [pdfBlob]
  });
-}
-// отправка документа в котором запущен скрипт на один адрес.
-
-
-
-
+}                                                                                // отправка документа в котором запущен скрипт на один прописанный адрес.
 
 //отправка тестового письма
-function test( ) {
+function testMail1( ) {
   MailApp.sendEmail("restart27.27@gmail.com","со скрипта","Тест скрипта" )
 }
+
+
+
 
 // Проверка сколько квоты для писем осталось  https://github.com/Max-Makhrov/GoogleSheets/blob/master/sendMail.gs
 function getRemainingDailyMailQuota() {
@@ -329,6 +336,12 @@ function reportQuota_() {
   console.log(quota);
   return 'Оставшееся количество писем для отправки сегодня: ' + quota;
 }
+
+
+
+
+
+
 
 
 
